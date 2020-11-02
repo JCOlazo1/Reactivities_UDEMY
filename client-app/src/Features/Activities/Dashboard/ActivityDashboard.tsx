@@ -1,14 +1,19 @@
 import { observer } from 'mobx-react-lite';
-import React, { useContext } from 'react'
+import React, { useContext, useEffect } from 'react'
 import { Grid } from 'semantic-ui-react'
 import  ActivityList  from './ActivityList'
-import  ActivityDetails  from './Details/ActivityDetails';
-import  ActivityForm  from './Form/ActivityForm';
 import ActivityStore from '../../../App/Stores/activityStore';
+import LoadingComponent from '../../../App/Layout/LoadingComponent';
 
 const ActivityDashboard: React.FC = () => {
     const activityStore = useContext(ActivityStore);
-    const {editMode, selectedActivity} = activityStore;
+
+    // useEffect is the React Hooks version of 'componentDidMount'
+    useEffect(() => {   
+      activityStore.loadActivities();
+    }, [activityStore]);   // the '[]' prevents the client-side app from calling 'useEffect' in an endless loop
+  
+    if (activityStore.loadingInitial) return <LoadingComponent content='Loading activities...'/>
     return (
         <Grid>
             <Grid.Column width={10}>
@@ -16,17 +21,7 @@ const ActivityDashboard: React.FC = () => {
                 <ActivityList />
             </Grid.Column>
             <Grid.Column width={6}>
-                {/* 'ActivityDetails' by itself returns a simple generic display but when given 'selectedActivity' will display that activity in full detail  */}
-                {selectedActivity && !editMode && (
-                     <ActivityDetails />
-                     )}
-                {/* Only display form if in Edit Mode */}
-                {editMode && (
-                <ActivityForm 
-                    key={selectedActivity && selectedActivity.id || 0}
-                    activity={selectedActivity!} 
-                    />
-                )}
+                <h2>Activity filters</h2>
             </Grid.Column>
         </Grid>
     );

@@ -1,37 +1,46 @@
-import React, {FormEvent, useContext, useState} from 'react'
+import React, {FormEvent, useContext, useEffect, useState} from 'react'
 import { Button, Form, Segment } from 'semantic-ui-react'
 import { IActivity } from '../../../../App/Models/activity'
 import {v4 as uuid} from 'uuid';
 import ActivityStore from '../../../../App/Stores/activityStore';
 import { observer } from 'mobx-react-lite';
+import { RouteComponentProps } from 'react-router-dom';
 
-interface IProps {
-    activity: IActivity;
+interface IDetailParams {
+    id: string;
 }
 
-const ActivityForm: React.FC<IProps> = ({
-    activity: initialFormState,
-}) => {
+const ActivityForm: React.FC<RouteComponentProps<IDetailParams>> = ({match, history}) => {
     const activityStore = useContext(ActivityStore);
-    const {createActivity, editActivity, submitting, cancelFormOpen} = activityStore;
-    const initializeForm = () => {
-        if (initialFormState) {
-            return initialFormState
-        } 
-        else {
-            return {
-                id:'',
-                title: '',
-                category: '',
-                description: '',
-                date: '',
-                city: '',
-                venue: ''
-            }
-        }
-    };
+    const {
+        createActivity, 
+        editActivity, 
+        submitting, 
+        activity: initialFormState,
+        loadActivity,
+        clearActivity
+    } = activityStore;
 
-    const [activity, setActivity] = useState<IActivity>(initializeForm);
+    const [activity, setActivity] = useState<IActivity>({
+        id:'',
+        title: '',
+        category: '',
+        description: '',
+        date: '',
+        city: '',
+        venue: ''
+    });
+
+    useEffect(() => {
+        if(match.params.id && activity.id.length === 0) {
+            loadActivity(match.params.id).then(() => initialFormState && setActivity(initialFormState));
+        }
+
+        // unmounting/unsubscribe the activity from DOM
+        return () => {
+            clearActivity()
+        }
+    }, [loadActivity, match.params.id, clearActivity, initialFormState, activity.id.length]); /* NOTE: putting this 'useEffect' below the 'const' fixed the dependency array issue */
 
     const handleSubmit = () => {
         if(activity.id.length === 0) {
@@ -39,17 +48,17 @@ const ActivityForm: React.FC<IProps> = ({
                 ...activity,
                 id: uuid()
             }
-            createActivity(newActivity);
+            createActivity(newActivity).then(() => history.push(`/activities/${newActivity.id}`));
         }
         else {
-            editActivity(activity);
+            editActivity(activity).then(() => history.push(`/activities/${activity.id}`));
         }
     }
 
     const handleInputChange = (event: FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const {name, value} = event.currentTarget;
-        setActivity({...activity,[name]: value})
-    }
+        setActivity({...activity, [name]: value});
+    };
 
     return (
         <Segment clearing>
@@ -98,7 +107,7 @@ const ActivityForm: React.FC<IProps> = ({
                     positive type='submit' 
                     content='Submit'/>
                 <Button 
-                    onClick={cancelFormOpen} 
+                    onClick={() => history.push('/activities')} 
                     floated='right' 
                     type='button' 
                     content='Cancel'
