@@ -4,7 +4,7 @@ import { IActivity } from '../Models/activity';
 import { makeAutoObservable } from 'mobx';
 import { createContext, SyntheticEvent } from 'react';
 
-configure({enforceActions: 'always'});
+configure({ enforceActions: 'always' });
 
 export class ActivityStore {
 
@@ -13,66 +13,70 @@ export class ActivityStore {
     }
 
     @observable activityRegistry = new Map(); // like a HashMap
-
-    @observable activity: IActivity | null = null; 
+    @observable activity: IActivity | null = null;
     @observable loadingInitial = false;
-
     @observable submitting = false;
     @observable target = '';
 
     // @computed is used to determine what something should do given values that already exist
     @computed get activitiesByDate() {
-        return Array.from(this.activityRegistry.values()).sort(
-            (a,b) => Date.parse(a.date) - Date.parse(b.date)
-        );
+        return this.groupActivitiesByDate(Array.from(this.activityRegistry.values()));
     }
 
-        // asynchronus method
+    groupActivitiesByDate(activities: IActivity[]) {
+        const sortedActivities = activities.sort(
+            (a, b) => Date.parse(a.date) - Date.parse(b.date)
+        )
+
+        // groups activities by date and groups them
+        return Object.entries(sortedActivities.reduce((activities, activity) => {
+            const date = activity.date.split('T')[0];
+            activities[date] = activities[date] ? [...activities[date], activity] : [activity];
+            return activities;
+        }, {} as { [key: string]: IActivity[] }));
+    }
+
+    // asynchronus method
     @action loadActivities = async () => {
         this.loadingInitial = true;
-        try
-        {
+        try {
             const activities = await agent.Activities.list();
             runInAction(() => {
                 activities.forEach((activity) => {
                     activity.date = activity.date.split('.')[0];
                     this.activityRegistry.set(activity.id, activity);
-                  });
-                  this.loadingInitial = false;
+                });
+                this.loadingInitial = false;
             })
-            
+            // so you can see what we're dfing using the 'array reduce' method
+            console.log(this.groupActivitiesByDate(activities));
         }
-        catch (error)
-        {
+        catch (error) {
             runInAction(() => {
                 this.loadingInitial = false;
             })
-            console.log(error);           
+            console.log(error);
 
         }
     }
 
     @action loadActivity = async (id: string) => {
         let activity = this.getActivity(id);
-        if(activity)
-        {
+        if (activity) {
             this.activity = activity;
         }
-        else
-        {
+        else {
             this.loadingInitial = true;
         }
 
-        try
-        {
+        try {
             activity = await agent.Activities.details(id);
             runInAction(() => {
                 this.activity = activity;
                 this.loadingInitial = false;
             })
         }
-        catch (error)
-        {
+        catch (error) {
             runInAction(() => {
                 this.loadingInitial = false;
             })
@@ -84,23 +88,21 @@ export class ActivityStore {
         this.activity = null;
     }
 
-    getActivity = (id:string) => {
+    getActivity = (id: string) => {
         return this.activityRegistry.get(id);
     }
 
     @action createActivity = async (activity: IActivity) => {
         this.submitting = true;
-        try
-        {
+        try {
             await agent.Activities.create(activity);
             runInAction(() => {
                 this.activityRegistry.set(activity.id, activity);
                 this.submitting = false;
             })
-            
+
         }
-        catch(error)
-        {
+        catch (error) {
             runInAction(() => {
                 this.submitting = false;
             })
@@ -110,8 +112,7 @@ export class ActivityStore {
 
     @action editActivity = async (activity: IActivity) => {
         this.submitting = true;
-        try
-        {
+        try {
             await agent.Activities.update(activity);
             runInAction(() => {
                 this.activityRegistry.set(activity.id, activity);
@@ -120,8 +121,7 @@ export class ActivityStore {
             })
 
         }
-        catch(error)
-        {
+        catch (error) {
             runInAction(() => {
                 this.submitting = false;
             })
@@ -134,8 +134,7 @@ export class ActivityStore {
         this.submitting = true;
         this.target = event.currentTarget.name;
 
-        try
-        {
+        try {
             await agent.Activities.delete(id);
             runInAction(() => {
                 this.activityRegistry.delete(id);
@@ -144,8 +143,7 @@ export class ActivityStore {
             })
 
         }
-        catch (error)
-        {
+        catch (error) {
             runInAction(() => {
                 this.submitting = false;
                 this.target = '';
@@ -153,7 +151,7 @@ export class ActivityStore {
 
             console.log(error);
         }
-        
+
     }
 }
 
