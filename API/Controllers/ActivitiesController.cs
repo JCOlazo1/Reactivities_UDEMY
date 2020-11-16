@@ -12,12 +12,12 @@ namespace API.Controllers
     [ApiController]
     public class ActivitiesController : ControllerBase
     {
-        // This entire "MediatR" section below simply allows the implementation of MediatR
+        // This entire "MediatR" section below simply allows the implementation of MediatR...
         private readonly IMediator _mediator;
         public ActivitiesController(IMediator mediator)
         {
             _mediator = mediator;
-        }   // Up until here.
+        }   // ...Up until here.
 
         [HttpGet]
         public async Task<ActionResult<List<Activity>>> List()

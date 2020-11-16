@@ -48,8 +48,8 @@ export class ActivityStore {
                 });
                 this.loadingInitial = false;
             })
-            // so you can see what we're dfing using the 'array reduce' method
-            console.log(this.groupActivitiesByDate(activities));
+            // so you can see what we're doing using the 'array reduce' method
+            // console.log(this.groupActivitiesByDate(activities));
         }
         catch (error) {
             runInAction(() => {
