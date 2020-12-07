@@ -9,7 +9,6 @@ import HomePage from '../../Features/Home/HomePage';
 import ActivityForm from '../../Features/Activities/Dashboard/Form/ActivityForm';
 import ActivityDetails from '../../Features/Activities/Dashboard/Details/ActivityDetails';
 import NotFound from './NotFound';
-import { Router } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 
 

@@ -3,6 +3,8 @@ import agent from '../Api/agent';
 import { IActivity } from '../Models/activity';
 import { makeAutoObservable } from 'mobx';
 import { createContext, SyntheticEvent } from 'react';
+import { history } from '../..';
+import { toast } from 'react-toastify';
 
 configure({ enforceActions: 'always' });
 
@@ -75,6 +77,7 @@ export class ActivityStore {
             runInAction(() => {
                 activity.date = new Date(activity.date)
                 this.activity = activity;
+                this.activityRegistry.set(activity.id, activity);
                 this.loadingInitial = false;
             })
             return activity;
@@ -102,14 +105,16 @@ export class ActivityStore {
             runInAction(() => {
                 this.activityRegistry.set(activity.id, activity);
                 this.submitting = false;
-            })
+            });
+            history.push(`/activities/${activity.id}`)
 
         }
         catch (error) {
             runInAction(() => {
                 this.submitting = false;
             })
-            console.log(error);
+            toast.error('Problem submitting data')
+            console.log(error.response);
         }
     }
 
@@ -121,15 +126,15 @@ export class ActivityStore {
                 this.activityRegistry.set(activity.id, activity);
                 this.activity = activity;
                 this.submitting = false;
-            })
-
+            });
+            history.push(`/activities/${activity.id}`)
         }
         catch (error) {
             runInAction(() => {
                 this.submitting = false;
             })
-
-            console.log(error);
+            toast.error('Problem submitting data')
+            console.log(error.response);
         }
     }
 
