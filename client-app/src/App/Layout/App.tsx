@@ -13,7 +13,6 @@ import { ToastContainer } from 'react-toastify';
 
 
 const App: React.FC<RouteComponentProps> = ({ location }) => {
-  // use "this" because we reference a class property
   // in an unordered list (<ul>), the 'li' must have a key or inspect console will complain
   return (
     <Fragment>
