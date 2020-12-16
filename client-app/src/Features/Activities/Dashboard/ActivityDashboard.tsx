@@ -1,19 +1,20 @@
 import { observer } from 'mobx-react-lite';
 import React, { useContext, useEffect } from 'react'
 import { Grid } from 'semantic-ui-react'
-import  ActivityList  from './ActivityList'
-import ActivityStore from '../../../App/Stores/activityStore';
+import ActivityList from './ActivityList'
 import LoadingComponent from '../../../App/Layout/LoadingComponent';
+import { RootStoreContext } from '../../../App/Stores/rootStore';
 
 const ActivityDashboard: React.FC = () => {
-    const activityStore = useContext(ActivityStore);
+    const rootStore = useContext(RootStoreContext);
+    const { loadActivities, loadingInitial } = rootStore.activityStore;
 
     // useEffect is the React Hooks version of 'componentDidMount'
-    useEffect(() => {   
-      activityStore.loadActivities();
-    }, [activityStore]);   // the '[]' prevents the client-side app from calling 'useEffect' in an endless loop
-  
-    if (activityStore.loadingInitial) return <LoadingComponent content='Loading activities...'/>
+    useEffect(() => {
+        loadActivities();
+    }, [loadActivities]);   // the '[]' prevents the client-side app from calling 'useEffect' in an endless loop
+
+    if (loadingInitial) return <LoadingComponent content='Loading activities...' />
     return (
         <Grid>
             <Grid.Column width={10}>

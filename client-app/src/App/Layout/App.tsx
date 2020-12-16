@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useContext, useEffect } from 'react';
 import { Container } from 'semantic-ui-react';
 import 'semantic-ui-css/semantic.min.css';
 import NavBar from '../../Features/Nav/NavBar';
@@ -10,12 +10,33 @@ import ActivityForm from '../../Features/Activities/Dashboard/Form/ActivityForm'
 import ActivityDetails from '../../Features/Activities/Dashboard/Details/ActivityDetails';
 import NotFound from './NotFound';
 import { ToastContainer } from 'react-toastify';
+import LoginForm from '../../Features/User/LoginForm';
+import { RootStoreContext } from '../Stores/rootStore';
+import LoadingComponent from './LoadingComponent';
+import ModalContainer from '../common/modals/ModalContainer';
 
 
 const App: React.FC<RouteComponentProps> = ({ location }) => {
   // in an unordered list (<ul>), the 'li' must have a key or inspect console will complain
+
+  const rootStore = useContext(RootStoreContext);
+  const { setAppLoaded, token, appLoaded } = rootStore.commonStore;
+  const { getUser } = rootStore.userStore;
+
+  useEffect(() => {
+    if (token) {
+      getUser().finally(() => setAppLoaded())
+    } else {
+      setAppLoaded()
+    }
+  }, [getUser, setAppLoaded, token])
+
+  if (!appLoaded) return <LoadingComponent content='Loading app...' />
+
+
   return (
     <Fragment>
+      <ModalContainer />
       <ToastContainer position='bottom-right' />
       <Route exact path='/' component={HomePage} />
       <Route
@@ -29,6 +50,7 @@ const App: React.FC<RouteComponentProps> = ({ location }) => {
                 <Route path='/activities/:id' component={ActivityDetails} />
                 <Route key={location.key} path={['/createActivity', '/manage/:id']} component={ActivityForm}
                 />
+                <Route path='/login' component={LoginForm} />
                 <Route component={NotFound} />
               </Switch>
 
